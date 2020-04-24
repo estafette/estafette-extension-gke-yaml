@@ -32,7 +32,8 @@ var (
 	credentialsJSON = kingpin.Flag("credentials", "GKE credentials configured at service level, passed in to this trusted extension.").Envar("ESTAFETTE_CREDENTIALS_KUBERNETES_ENGINE").Required().String()
 
 	// optional flags
-	releaseName = kingpin.Flag("release-name", "Name of the release section, which is used by convention to resolve the credentials.").Envar("ESTAFETTE_RELEASE_NAME").String()
+	releaseName   = kingpin.Flag("release-name", "Name of the release section, which is used by convention to resolve the credentials.").Envar("ESTAFETTE_RELEASE_NAME").String()
+	releaseAction = kingpin.Flag("release-action", "Name of the release action, to control the type of release.").Envar("ESTAFETTE_RELEASE_ACTION").String()
 )
 
 func main() {
@@ -182,40 +183,46 @@ func main() {
 		foundation.RunCommandWithArgs(ctx, "kubectl", append(kubectlApplyArgs, "--dry-run"))
 	}
 
-	log.Info().Msg("\nDIFF\n")
+	releaseAction = kingpin.Flag("release-action", "Name of the release action, to control the type of release.").Envar("ESTAFETTE_RELEASE_ACTION").String()
+
+	if *releaseAction != "apply" {
+		log.Info().Msg("\nDIFF\n")
+		for _, m := range params.Manifests {
+			kubectlApplyArgs := []string{"diff", "-f", filepath.Join(renderedDir, m), "-n", params.Namespace}
+
+			// always perform a dryrun to ensure we're not ending up in a semi broken state where half of the templates is successfully applied and others not
+			foundation.RunCommandWithArgs(ctx, "kubectl", append(kubectlApplyArgs, "--dry-run"))
+		}
+	}
+
+	if params.DryRun || *releaseAction == "diff" {
+		return
+	}
+
+	log.Info().Msg("\nAPPLY\n")
+
+	// apply manifests
 	for _, m := range params.Manifests {
-		kubectlApplyArgs := []string{"diff", "-f", filepath.Join(renderedDir, m), "-n", params.Namespace}
+		kubectlApplyArgs := []string{"apply", "-f", filepath.Join(renderedDir, m), "-n", params.Namespace}
 
 		// always perform a dryrun to ensure we're not ending up in a semi broken state where half of the templates is successfully applied and others not
+		log.Info().Msgf("Performing a dryrun to test the validity of manifest '%v'...", m)
 		foundation.RunCommandWithArgs(ctx, "kubectl", append(kubectlApplyArgs, "--dry-run"))
 	}
 
-	if !params.DryRun {
-
-		log.Info().Msg("\nAPPLY\n")
-
-		// apply manifests
-		for _, m := range params.Manifests {
-			kubectlApplyArgs := []string{"apply", "-f", filepath.Join(renderedDir, m), "-n", params.Namespace}
-
-			// always perform a dryrun to ensure we're not ending up in a semi broken state where half of the templates is successfully applied and others not
-			log.Info().Msgf("Performing a dryrun to test the validity of manifest '%v'...", m)
-			foundation.RunCommandWithArgs(ctx, "kubectl", append(kubectlApplyArgs, "--dry-run"))
-		}
-
-		for _, deploy := range params.Deployments {
-			log.Info().Msgf("Waiting for deployment '%v' to finish...", deploy)
-			err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"rollout", "status", "deployment", deploy, "-n", params.Namespace})
-		}
-
-		for _, sts := range params.Statefulsets {
-			log.Info().Msgf("Waiting for statefulset '%v' to finish...", sts)
-			err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"rollout", "status", "statefulset", sts, "-n", params.Namespace})
-		}
-
-		for _, ds := range params.Daemonsets {
-			log.Info().Msgf("Waiting for daemonsets '%v' to finish...", ds)
-			err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"rollout", "status", "daemonsets", ds, "-n", params.Namespace})
-		}
+	for _, deploy := range params.Deployments {
+		log.Info().Msgf("Waiting for deployment '%v' to finish...", deploy)
+		err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"rollout", "status", "deployment", deploy, "-n", params.Namespace})
 	}
+
+	for _, sts := range params.Statefulsets {
+		log.Info().Msgf("Waiting for statefulset '%v' to finish...", sts)
+		err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"rollout", "status", "statefulset", sts, "-n", params.Namespace})
+	}
+
+	for _, ds := range params.Daemonsets {
+		log.Info().Msgf("Waiting for daemonsets '%v' to finish...", ds)
+		err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"rollout", "status", "daemonsets", ds, "-n", params.Namespace})
+	}
+
 }
