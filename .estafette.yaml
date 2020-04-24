@@ -74,6 +74,7 @@ stages:
     placeholders:
       APP_NAME: ${ESTAFETTE_LABEL_APP}
       VERSION: ${ESTAFETTE_BUILD_VERSION}
+      NAMESPACE: mynamespace
     deployments:
     - mydeployment
     statefulsets:
