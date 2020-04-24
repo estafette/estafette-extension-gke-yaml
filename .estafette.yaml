@@ -49,8 +49,6 @@ stages:
     repositories:
     - extensions
     path: ./publish
-    copy:
-    - templates
 
   check-container:
     parallelStages:
