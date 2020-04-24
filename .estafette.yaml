@@ -40,7 +40,6 @@ stages:
           && kubectl version --client
 
       COPY ${ESTAFETTE_GIT_NAME} /
-      COPY templates /templates
 
       ENV ESTAFETTE_LOG_FORMAT="console"
 
