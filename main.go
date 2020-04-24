@@ -191,7 +191,7 @@ func main() {
 			kubectlApplyArgs := []string{"diff", "-f", filepath.Join(renderedDir, m), "-n", params.Namespace}
 
 			// always perform a dryrun to ensure we're not ending up in a semi broken state where half of the templates is successfully applied and others not
-			foundation.RunCommandWithArgs(ctx, "kubectl", kubectlApplyArgs)
+			_ = foundation.RunCommandWithArgsExtended(ctx, "kubectl", kubectlApplyArgs)
 		}
 	}
 
