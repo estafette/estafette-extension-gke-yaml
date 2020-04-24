@@ -169,7 +169,7 @@ func main() {
 			log.Fatal().Err(err).Msgf("Failed writing manifest to '%v'", filepath.Join(renderedDir, m))
 		}
 
-		log.Debug().Msgf("%v:", m)
+		log.Debug().Msgf("\n%v:\n", m)
 		log.Debug().Msg(renderedManifestContent)
 	}
 
