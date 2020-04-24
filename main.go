@@ -170,7 +170,7 @@ func main() {
 		}
 
 		log.Debug().Msgf("\n%v:\n", m)
-		log.Debug().Msg(renderedManifestContent)
+		log.Debug().Msgf("%v\n", renderedManifestContent)
 	}
 
 	// dry-run manifests
