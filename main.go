@@ -32,20 +32,7 @@ var (
 	credentialsJSON = kingpin.Flag("credentials", "GKE credentials configured at service level, passed in to this trusted extension.").Envar("ESTAFETTE_CREDENTIALS_KUBERNETES_ENGINE").Required().String()
 
 	// optional flags
-	// gitSource     = kingpin.Flag("git-source", "Repository source.").Envar("ESTAFETTE_GIT_SOURCE").String()
-	// gitOwner      = kingpin.Flag("git-owner", "Repository owner.").Envar("ESTAFETTE_GIT_OWNER").String()
-	// gitName       = kingpin.Flag("git-name", "Repository name, used as application name if not passed explicitly and app label not being set.").Envar("ESTAFETTE_GIT_NAME").String()
-	// gitBranch     = kingpin.Flag("git-branch", "Repository commit branch.").Envar("ESTAFETTE_GIT_BRANCH").String()
-	// gitRevision   = kingpin.Flag("git-revision", "Repository commit revisition.").Envar("ESTAFETTE_GIT_REVISION").String()
-	// appLabel      = kingpin.Flag("app-name", "App label, used as application name if not passed explicitly.").Envar("ESTAFETTE_LABEL_APP").String()
-	// buildVersion  = kingpin.Flag("build-version", "Version number, used if not passed explicitly.").Envar("ESTAFETTE_BUILD_VERSION").String()
 	releaseName = kingpin.Flag("release-name", "Name of the release section, which is used by convention to resolve the credentials.").Envar("ESTAFETTE_RELEASE_NAME").String()
-	// releaseAction = kingpin.Flag("release-action", "Name of the release action, to control the type of release.").Envar("ESTAFETTE_RELEASE_ACTION").String()
-	// releaseID     = kingpin.Flag("release-id", "ID of the release, to use as a label.").Envar("ESTAFETTE_RELEASE_ID").String()
-	// triggeredBy   = kingpin.Flag("triggered-by", "The user id of the person triggering the release.").Envar("ESTAFETTE_TRIGGER_MANUAL_USER_ID").String()
-
-	assistTroubleshootingOnError = false
-	paramsForTroubleshooting     = Params{}
 )
 
 func main() {
@@ -91,11 +78,6 @@ func main() {
 	var params Params
 	if credential.AdditionalProperties.Defaults != nil {
 		log.Info().Msgf("Using defaults from credential %v...", credentialsParam.Credentials)
-		// todo log just the specified defaults, not the entire parms object
-		// defaultsAsYAML, err := yaml.Marshal(credential.AdditionalProperties.Defaults)
-		// if err == nil {
-		// 	log.Printf(string(defaultsAsYAML))
-		// }
 		params = *credential.AdditionalProperties.Defaults
 	}
 
@@ -186,6 +168,9 @@ func main() {
 		if err != nil {
 			log.Fatal().Err(err).Msgf("Failed writing manifest to '%v'", filepath.Join(renderedDir, m))
 		}
+
+		log.Debug().Msgf("%v:", m)
+		log.Debug().Msg(renderedManifestContent)
 	}
 
 	// dry-run manifests
