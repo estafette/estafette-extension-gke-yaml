@@ -180,7 +180,7 @@ func main() {
 		kubectlApplyArgs := []string{"apply", "-f", filepath.Join(renderedDir, m), "-n", params.Namespace}
 
 		// always perform a dryrun to ensure we're not ending up in a semi broken state where half of the templates is successfully applied and others not
-		foundation.RunCommandWithArgs(ctx, "kubectl", append(kubectlApplyArgs, "--dry-run"))
+		foundation.RunCommandWithArgs(ctx, "kubectl", append(kubectlApplyArgs, "--dry-run=client"))
 	}
 
 	releaseAction = kingpin.Flag("release-action", "Name of the release action, to control the type of release.").Envar("ESTAFETTE_RELEASE_ACTION").String()
@@ -207,7 +207,7 @@ func main() {
 
 		// always perform a dryrun to ensure we're not ending up in a semi broken state where half of the templates is successfully applied and others not
 		log.Info().Msgf("Performing a dryrun to test the validity of manifest '%v'...", m)
-		foundation.RunCommandWithArgs(ctx, "kubectl", append(kubectlApplyArgs, "--dry-run"))
+		foundation.RunCommandWithArgs(ctx, "kubectl", kubectlApplyArgs)
 	}
 
 	for _, deploy := range params.Deployments {
