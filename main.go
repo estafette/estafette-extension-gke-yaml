@@ -174,15 +174,25 @@ func main() {
 	}
 
 	// dry-run manifests
+	log.Info().Msg("\nDRYRUN\n")
 	for _, m := range params.Manifests {
 		kubectlApplyArgs := []string{"apply", "-f", filepath.Join(renderedDir, m), "-n", params.Namespace}
 
 		// always perform a dryrun to ensure we're not ending up in a semi broken state where half of the templates is successfully applied and others not
-		log.Info().Msgf("Performing a dryrun to test the validity of manifest '%v'...", m)
+		foundation.RunCommandWithArgs(ctx, "kubectl", append(kubectlApplyArgs, "--dry-run"))
+	}
+
+	log.Info().Msg("\nDIFF\n")
+	for _, m := range params.Manifests {
+		kubectlApplyArgs := []string{"diff", "-f", filepath.Join(renderedDir, m), "-n", params.Namespace}
+
+		// always perform a dryrun to ensure we're not ending up in a semi broken state where half of the templates is successfully applied and others not
 		foundation.RunCommandWithArgs(ctx, "kubectl", append(kubectlApplyArgs, "--dry-run"))
 	}
 
 	if !params.DryRun {
+
+		log.Info().Msg("\nAPPLY\n")
 
 		// apply manifests
 		for _, m := range params.Manifests {
