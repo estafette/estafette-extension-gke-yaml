@@ -183,14 +183,12 @@ func main() {
 		foundation.RunCommandWithArgs(ctx, "kubectl", append(kubectlApplyArgs, "--dry-run=client"))
 	}
 
-	if *releaseAction != "apply" {
-		log.Info().Msg("\nDIFF\n")
-		for _, m := range params.Manifests {
-			kubectlApplyArgs := []string{"diff", "-f", filepath.Join(renderedDir, m), "-n", params.Namespace}
+	log.Info().Msg("\nDIFF\n")
+	for _, m := range params.Manifests {
+		kubectlApplyArgs := []string{"diff", "-f", filepath.Join(renderedDir, m), "-n", params.Namespace}
 
-			// always perform a dryrun to ensure we're not ending up in a semi broken state where half of the templates is successfully applied and others not
-			_ = foundation.RunCommandWithArgsExtended(ctx, "kubectl", kubectlApplyArgs)
-		}
+		// always perform a dryrun to ensure we're not ending up in a semi broken state where half of the templates is successfully applied and others not
+		_ = foundation.RunCommandWithArgsExtended(ctx, "kubectl", kubectlApplyArgs)
 	}
 
 	if params.DryRun || *releaseAction == "diff" {
