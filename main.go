@@ -180,7 +180,7 @@ func main() {
 		kubectlApplyArgs := []string{"apply", "-f", filepath.Join(renderedDir, m), "-n", params.Namespace}
 
 		// always perform a dryrun to ensure we're not ending up in a semi broken state where half of the templates is successfully applied and others not
-		foundation.RunCommandWithArgs(ctx, "kubectl", append(kubectlApplyArgs, "--dry-run=client"))
+		foundation.RunCommandWithArgs(ctx, "kubectl", append(kubectlApplyArgs, "--dry-run=server"))
 	}
 
 	log.Info().Msg("\nDIFF\n")
