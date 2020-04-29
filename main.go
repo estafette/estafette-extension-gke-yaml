@@ -8,6 +8,8 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
+	"time"
 
 	"github.com/alecthomas/kingpin"
 	foundation "github.com/estafette/estafette-foundation"
@@ -193,6 +195,32 @@ func main() {
 
 	if params.DryRun || *releaseAction == "diff" {
 		return
+	}
+
+	if params.AwaitZeroReplicas {
+		for _, deploy := range params.Deployments {
+			log.Info().Msgf("Awaiting for deployment '%v' to scale to 0 replicas...", deploy)
+			for {
+				output, err := foundation.GetCommandWithArgsOutput(ctx, "kubectl", []string{"get", "deployment", deploy, "-n", params.Namespace, "-o=jsonpath='{.status.replicas}'"})
+				if err != nil {
+					break
+				}
+
+				replicas, err := strconv.Atoi(output)
+				if err != nil {
+					break
+				}
+
+				if replicas == 0 {
+					break
+				}
+
+				log.Info().Msgf("Deployment '%v' has %v replicas; sleeping for 10 seconds", deploy, replicas)
+				time.Sleep(10 * time.Second)
+			}
+
+			log.Info().Msgf("Deployment '%v' has scaled to 0 replicas...", deploy)
+		}
 	}
 
 	log.Info().Msg("\nAPPLY\n")

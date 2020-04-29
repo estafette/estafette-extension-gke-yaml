@@ -12,6 +12,8 @@ type Params struct {
 
 	Placeholders map[string]string `json:"placeholders,omitempty" yaml:"placeholders,omitempty"`
 
+	AwaitZeroReplicas bool `json:"awaitZeroReplicas,omitempty" yaml:"awaitZeroReplicas,omitempty"`
+
 	DryRun bool `json:"dryrun,omitempty" yaml:"dryrun,omitempty"`
 }
 
