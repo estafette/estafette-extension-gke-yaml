@@ -201,7 +201,7 @@ func main() {
 		for _, deploy := range params.Deployments {
 			log.Info().Msgf("Awaiting for deployment '%v' to scale to 0 replicas...", deploy)
 			for {
-				output, err := foundation.GetCommandWithArgsOutput(ctx, "kubectl", []string{"get", "deployment", deploy, "-n", params.Namespace, "-o=jsonpath='{.status.replicas}'"})
+				output, err := foundation.GetCommandWithArgsOutput(ctx, "kubectl", []string{"get", "deployment", deploy, "-n", params.Namespace, "-o=jsonpath='{.spec.replicas}'"})
 				if err != nil {
 					break
 				}
