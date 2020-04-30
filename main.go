@@ -203,12 +203,12 @@ func main() {
 			for {
 				output, err := foundation.GetCommandWithArgsOutput(ctx, "kubectl", []string{"get", "deployment", deploy, "-n", params.Namespace, "-o=jsonpath='{.spec.replicas}'"})
 				if err != nil {
-					break
+					log.Fatal().Err(err).Str("output", output).Msgf("Failed retrieving replicas for deployment '%v'", deploy)
 				}
 
 				replicas, err := strconv.Atoi(output)
 				if err != nil {
-					break
+					log.Fatal().Err(err).Str("output", output).Msgf("Failed converting replicas to integer for deployment '%v'", deploy)
 				}
 
 				if replicas == 0 {
