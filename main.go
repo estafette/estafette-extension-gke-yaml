@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/alecthomas/kingpin"
@@ -205,6 +206,8 @@ func main() {
 				if err != nil {
 					log.Fatal().Err(err).Str("output", output).Msgf("Failed retrieving replicas for deployment '%v'", deploy)
 				}
+
+				output = strings.Trim(output, "'")
 
 				replicas, err := strconv.Atoi(output)
 				if err != nil {
