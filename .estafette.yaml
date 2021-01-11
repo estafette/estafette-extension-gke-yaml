@@ -67,7 +67,7 @@ stages:
 
   integration-test:
     image: extensions/gke-yaml:${ESTAFETTE_BUILD_VERSION}
-    credentials: gke-tooling
+    credentials: gke-dev-common
     namespace: mynamespace
     manifests:
     - kubernetes.yaml
