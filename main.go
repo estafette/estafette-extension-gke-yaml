@@ -82,10 +82,6 @@ func main() {
 		if err != nil {
 			log.Fatal().Err(err).Msg("Failed unmarshalling injected credentials")
 		}
-		if len(credentials) == 0 {
-			log.Warn().Str("data", string(credentialsFileContent)).Msgf("Found 0 credentials in file %v", *credentialsPath)
-		}
-		log.Debug().Msgf("Read %v credentials", len(credentials))
 	}
 
 	log.Info().Msgf("Checking if credential %v exists...", credentialsParam.Credentials)
