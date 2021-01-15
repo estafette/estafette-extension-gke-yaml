@@ -215,6 +215,11 @@ func main() {
 			for {
 				output, err := foundation.GetCommandWithArgsOutput(ctx, "kubectl", []string{"get", "deployment", deploy, "-n", params.Namespace, "-o=jsonpath='{.spec.replicas}'"})
 				if err != nil {
+					if strings.Contains(output, "NotFound") {
+						// this is the first time it gets deployed, so nothing to wait for
+						log.Warn().Msgf("Deployment '%v' does not exist yet, no need to wait", deploy)
+						break
+					}
 					log.Fatal().Err(err).Str("output", output).Msgf("Failed retrieving replicas for deployment '%v'", deploy)
 				}
 
