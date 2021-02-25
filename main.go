@@ -178,10 +178,18 @@ func main() {
 			return fmt.Sprintf("${%v}", placeholderName)
 		})
 
-		// store rendered manifest
-		err = ioutil.WriteFile(filepath.Join(renderedDir, m), []byte(renderedManifestContent), 0666)
+		// create directory in case manifest file is not in root of repo
+		renderedFilepath := filepath.Join(renderedDir, m)
+		renderedFileDir := filepath.Dir(renderedFilepath)
+		err = os.MkdirAll(renderedFileDir, 0666)
 		if err != nil {
-			log.Fatal().Err(err).Msgf("Failed writing manifest to '%v'", filepath.Join(renderedDir, m))
+			log.Fatal().Err(err).Msgf("Failed creating directory '%v'", renderedFileDir)
+		}
+
+		// store rendered manifest
+		err = ioutil.WriteFile(renderedFilepath, []byte(renderedManifestContent), 0666)
+		if err != nil {
+			log.Fatal().Err(err).Msgf("Failed writing manifest to '%v'", renderedFilepath)
 		}
 
 		log.Debug().Msgf("\n%v:\n", m)
