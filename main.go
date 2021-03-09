@@ -276,4 +276,31 @@ func main() {
 		err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"rollout", "status", "daemonsets", ds, "-n", params.Namespace})
 	}
 
+	if params.JobTimeoutSeconds > 0 {
+		var timeout bool
+		go func() {
+			<-time.After(time.Second * time.Duration(params.JobTimeoutSeconds))
+			timeout = true
+		}()
+
+		for _, job := range params.Jobs {
+			if !timeout {
+				log.Info().Msgf("Waiting for job '%v' to finish...", job)
+				for !timeout {
+					out, _ := foundation.GetCommandWithArgsOutput(ctx, "kubectl", []string{"get", "job", job, "-n", params.Namespace, "-o", "jsonpath='{.status.succeeded}'"})
+					if out == "1" {
+						log.Info().Msgf("Job '%v' finished successfully.", job)
+						break
+					} else {
+						time.Sleep(time.Microsecond * 100)
+					}
+				}
+			}
+			if timeout {
+				out, _ := foundation.GetCommandWithArgsOutput(ctx, "kubectl", []string{"logs", "job/" + job, "-n", params.Namespace})
+				log.Info().Msgf("Job '%v' timed-out.\nLogs:\n%s", job, out)
+			}
+		}
+	}
+
 }
