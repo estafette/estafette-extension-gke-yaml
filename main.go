@@ -196,6 +196,33 @@ func main() {
 		log.Debug().Msgf("%v\n", renderedManifestContent)
 	}
 
+	if *releaseAction == "delete" {
+		// dry-run manifests
+		log.Info().Msg("\nDRYRUN\n")
+		for _, m := range params.Manifests {
+			kubectlDeleteArgs := []string{"delete", "-f", filepath.Join(renderedDir, m), "-n", params.Namespace}
+
+			foundation.RunCommandWithArgs(ctx, "kubectl", append(kubectlDeleteArgs, "--dry-run=server"))
+		}
+
+		if params.DryRun {
+			return
+		}
+
+		log.Info().Msg("\nDELETE\n")
+
+		// delete resources
+		for _, m := range params.Manifests {
+			kubectlDeleteArgs := []string{"delete", "-f", filepath.Join(renderedDir, m), "-n", params.Namespace}
+
+			// delete resources from manifest
+			log.Info().Msgf("Deleting resources defined in the manifest '%v'...", m)
+			foundation.RunCommandWithArgs(ctx, "kubectl", kubectlDeleteArgs)
+		}
+
+		return
+	}
+
 	// dry-run manifests
 	log.Info().Msg("\nDRYRUN\n")
 	for _, m := range params.Manifests {
