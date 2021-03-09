@@ -292,14 +292,18 @@ func main() {
 						log.Info().Msgf("Job '%v' finished successfully.", job)
 						break
 					} else {
-						time.Sleep(time.Microsecond * 100)
+						time.Sleep(time.Second * 2)
 					}
 				}
 			}
 			if timeout {
 				out, _ := foundation.GetCommandWithArgsOutput(ctx, "kubectl", []string{"logs", "job/" + job, "-n", params.Namespace})
-				log.Info().Msgf("Job '%v' timed-out.\nLogs:\n%s", job, out)
+				log.Error().Msgf("Job '%v' timed-out.\nLogs:\n%s", job, out)
 			}
+		}
+
+		if timeout {
+			log.Fatal().Msgf("Job(s) failed to complete successfully within timeout %d seconds.", params.JobTimeoutSeconds)
 		}
 	}
 
