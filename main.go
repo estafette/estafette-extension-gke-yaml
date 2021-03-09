@@ -315,7 +315,7 @@ func main() {
 				log.Info().Msgf("Waiting for job '%v' to finish...", job)
 				for !timeout {
 					out, _ := foundation.GetCommandWithArgsOutput(ctx, "kubectl", []string{"get", "job", job, "-n", params.Namespace, "-o", "jsonpath='{.status.succeeded}'"})
-					if out == "1" {
+					if strings.Compare(out, "'1'") == 0 {
 						log.Info().Msgf("Job '%v' finished successfully.", job)
 						break
 					} else {
