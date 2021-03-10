@@ -32,6 +32,7 @@ stages:
             description="The ${ESTAFETTE_GIT_NAME} component is an Estafette extension to deploy applications to a Kubernetes Engine cluster using a simple kubernetes.yaml file"
 
       RUN apk update \
+          && apk upgrade \
           && apk add --upgrade gnupg \
           && rm /var/cache/apk/*
 
