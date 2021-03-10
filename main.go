@@ -304,16 +304,12 @@ func main() {
 	}
 
 	if params.JobTimeoutSeconds > 0 {
-		var timeout bool
-		go func() {
-			<-time.After(time.Second * time.Duration(params.JobTimeoutSeconds))
-			timeout = true
-		}()
-
+		timeoutChan := time.After(time.Second * time.Duration(params.JobTimeoutSeconds))
 		for _, job := range params.Jobs {
-			if !timeout {
-				log.Info().Msgf("Waiting for job '%v' to finish...", job)
-				for !timeout {
+			log.Info().Msgf("Waiting for job '%v' to finish...", job)
+			for {
+				select {
+				default:
 					out, _ := foundation.GetCommandWithArgsOutput(ctx, "kubectl", []string{"get", "job", job, "-n", params.Namespace, "-o", "jsonpath='{.status.succeeded}'"})
 					if strings.Compare(out, "'1'") == 0 {
 						log.Info().Msgf("Job '%v' finished successfully.", job)
@@ -321,16 +317,12 @@ func main() {
 					} else {
 						time.Sleep(time.Second * 2)
 					}
+				case <-timeoutChan:
+					desc, _ := foundation.GetCommandWithArgsOutput(ctx, "kubectl", []string{"describe", "job", job, "-n", params.Namespace})
+					logs, _ := foundation.GetCommandWithArgsOutput(ctx, "kubectl", []string{"logs", "job/" + job, "-n", params.Namespace})
+					log.Fatal().Msgf("Job '%v' timed-out.\nJob Describe:\n%s\n\n\nLogs:\n%s", job, desc, logs)
 				}
 			}
-			if timeout {
-				out, _ := foundation.GetCommandWithArgsOutput(ctx, "kubectl", []string{"logs", "job/" + job, "-n", params.Namespace})
-				log.Error().Msgf("Job '%v' timed-out.\nLogs:\n%s", job, out)
-			}
-		}
-
-		if timeout {
-			log.Fatal().Msgf("Job(s) failed to complete successfully within timeout %d seconds.", params.JobTimeoutSeconds)
 		}
 	}
 
