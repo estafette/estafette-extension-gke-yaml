@@ -307,13 +307,14 @@ func main() {
 		timeoutChan := time.After(time.Second * time.Duration(params.JobTimeoutSeconds))
 		for _, job := range params.Jobs {
 			log.Info().Msgf("Waiting for job '%v' to finish...", job)
+		JobWaitLoop:
 			for {
 				select {
 				default:
 					out, _ := foundation.GetCommandWithArgsOutput(ctx, "kubectl", []string{"get", "job", job, "-n", params.Namespace, "-o", "jsonpath='{.status.succeeded}'"})
 					if strings.Compare(out, "'1'") == 0 {
 						log.Info().Msgf("Job '%v' finished successfully.", job)
-						break
+						break JobWaitLoop
 					} else {
 						time.Sleep(time.Second * 2)
 					}
