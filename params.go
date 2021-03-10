@@ -9,12 +9,15 @@ type Params struct {
 	Deployments  []string `json:"deployments,omitempty" yaml:"deployments,omitempty"`
 	Statefulsets []string `json:"statefulsets,omitempty" yaml:"statefulsets,omitempty"`
 	Daemonsets   []string `json:"daemonsets,omitempty" yaml:"daemonsets,omitempty"`
+	Jobs         []string `json:"jobs,omitempty" yaml:"jobs,omitempty"`
 
 	Placeholders map[string]string `json:"placeholders,omitempty" yaml:"placeholders,omitempty"`
 
 	AwaitZeroReplicas bool `json:"awaitZeroReplicas,omitempty" yaml:"awaitZeroReplicas,omitempty"`
 
 	DryRun bool `json:"dryrun,omitempty" yaml:"dryrun,omitempty"`
+
+	JobTimeoutSeconds int `json:"jobtimeoutseconds,omitempty" yaml:"jobtimeoutseconds,omitempty"`
 }
 
 // SetDefaults fills in empty fields with convention-based defaults

@@ -196,6 +196,33 @@ func main() {
 		log.Debug().Msgf("%v\n", renderedManifestContent)
 	}
 
+	if *releaseAction == "delete" {
+		// dry-run manifests
+		log.Info().Msg("\nDRYRUN\n")
+		for _, m := range params.Manifests {
+			kubectlDeleteArgs := []string{"delete", "-f", filepath.Join(renderedDir, m), "-n", params.Namespace}
+
+			foundation.RunCommandWithArgs(ctx, "kubectl", append(kubectlDeleteArgs, "--dry-run=server"))
+		}
+
+		if params.DryRun {
+			return
+		}
+
+		log.Info().Msg("\nDELETE\n")
+
+		// delete resources
+		for _, m := range params.Manifests {
+			kubectlDeleteArgs := []string{"delete", "-f", filepath.Join(renderedDir, m), "-n", params.Namespace}
+
+			// delete resources from manifest
+			log.Info().Msgf("Deleting resources defined in the manifest '%v'...", m)
+			foundation.RunCommandWithArgs(ctx, "kubectl", kubectlDeleteArgs)
+		}
+
+		return
+	}
+
 	// dry-run manifests
 	log.Info().Msg("\nDRYRUN\n")
 	for _, m := range params.Manifests {
@@ -274,6 +301,30 @@ func main() {
 	for _, ds := range params.Daemonsets {
 		log.Info().Msgf("Waiting for daemonsets '%v' to finish...", ds)
 		err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"rollout", "status", "daemonsets", ds, "-n", params.Namespace})
+	}
+
+	if params.JobTimeoutSeconds > 0 {
+		timeoutChan := time.After(time.Second * time.Duration(params.JobTimeoutSeconds))
+		for _, job := range params.Jobs {
+			log.Info().Msgf("Waiting for job '%v' to finish...", job)
+		JobWaitLoop:
+			for {
+				select {
+				default:
+					out, _ := foundation.GetCommandWithArgsOutput(ctx, "kubectl", []string{"get", "job", job, "-n", params.Namespace, "-o", "jsonpath='{.status.succeeded}'"})
+					if strings.Compare(out, "'1'") == 0 {
+						log.Info().Msgf("Job '%v' finished successfully.", job)
+						break JobWaitLoop
+					} else {
+						time.Sleep(time.Second * 2)
+					}
+				case <-timeoutChan:
+					desc, _ := foundation.GetCommandWithArgsOutput(ctx, "kubectl", []string{"describe", "job", job, "-n", params.Namespace})
+					logs, _ := foundation.GetCommandWithArgsOutput(ctx, "kubectl", []string{"logs", "job/" + job, "-n", params.Namespace})
+					log.Fatal().Msgf("Job '%v' timed-out.\nJob Describe:\n%s\n\n\nLogs:\n%s", job, desc, logs)
+				}
+			}
+		}
 	}
 
 }
