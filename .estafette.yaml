@@ -34,6 +34,7 @@ stages:
       RUN apk update \
           && apk upgrade \
           && apk add --upgrade gnupg \
+          && rm -rf google-cloud-sdk/bin/anthoscli \
           && rm /var/cache/apk/*
 
       RUN curl https://storage.googleapis.com/kubernetes-release/release/v1.22.15/bin/linux/amd64/kubectl --output /google-cloud-sdk/bin/kubectl \
