@@ -26,7 +26,7 @@ stages:
     image: extensions/docker:dev
     action: build
     inline: |
-      FROM gcr.io/google.com/cloudsdktool/cloud-sdk:331.0.0-alpine
+      FROM gcr.io/google.com/cloudsdktool/cloud-sdk:405.0.0-alpine
 
       LABEL maintainer="estafette.io" \
             description="The ${ESTAFETTE_GIT_NAME} component is an Estafette extension to deploy applications to a Kubernetes Engine cluster using a simple kubernetes.yaml file"
@@ -34,9 +34,10 @@ stages:
       RUN apk update \
           && apk upgrade \
           && apk add --upgrade gnupg \
+          && rm -rf google-cloud-sdk/bin/anthoscli \
           && rm /var/cache/apk/*
 
-      RUN curl https://storage.googleapis.com/kubernetes-release/release/v1.19.2/bin/linux/amd64/kubectl --output /google-cloud-sdk/bin/kubectl \
+      RUN curl https://storage.googleapis.com/kubernetes-release/release/v1.22.15/bin/linux/amd64/kubectl --output /google-cloud-sdk/bin/kubectl \
           && chmod +x /google-cloud-sdk/bin/kubectl \
           && kubectl version --client
 
