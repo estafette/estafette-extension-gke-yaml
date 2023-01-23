@@ -307,7 +307,7 @@ func main() {
 		if err != nil {
 			log.Error().Msgf("Error with rolling out deployment %v with error: %v", deploy, err)
 		}
-		err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"label", "deployment", deploy, "-n", params.Namespace, "--overwrite", fmt.Sprintf("estafette.io/builder-image-sha=%v,estafette.io/builder-image-date=%v", *builderImageSHA, *builderImageSHA)})
+		err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"label", "deployment", deploy, "-n", params.Namespace, "--overwrite", fmt.Sprintf("estafette.io/builder-image-sha=%v", *builderImageDate), fmt.Sprintf("estafette.io/builder-image-date=%v", *builderImageSHA)})
 		if err != nil {
 			log.Error().Msgf("Error with labeling deployment %v with error: %v", deploy, err)
 		}
@@ -319,7 +319,7 @@ func main() {
 		if err != nil {
 			log.Error().Msgf("Error with rolling out statefulset %v with error: %v", sts, err)
 		}
-		err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"label", "statefulset", sts, "-n", params.Namespace, "--overwrite", fmt.Sprintf("estafette.io/builder-image-sha=%v,estafette.io/builder-image-date=%v", *builderImageSHA, *builderImageSHA)})
+		err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"label", "statefulset", sts, "-n", params.Namespace, "--overwrite", fmt.Sprintf("estafette.io/builder-image-sha=%v", *builderImageDate), fmt.Sprintf("estafette.io/builder-image-date=%v", *builderImageSHA)})
 		if err != nil {
 			log.Error().Msgf("Error with labeling statefulset %v with error: %v", sts, err)
 		}
@@ -331,7 +331,7 @@ func main() {
 		if err != nil {
 			log.Error().Msgf("Error with rooling out daemonset %v with error: %v", ds, err)
 		}
-		err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"label", "daemonset", ds, "-n", params.Namespace, "--overwrite", fmt.Sprintf("estafette.io/builder-image-sha=%v,estafette.io/builder-image-date=%v", *builderImageSHA, *builderImageSHA)})
+		err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"label", "daemonset", ds, "-n", params.Namespace, "--overwrite", fmt.Sprintf("estafette.io/builder-image-sha=%v", *builderImageDate), fmt.Sprintf("estafette.io/builder-image-date=%v", *builderImageSHA)})
 		if err != nil {
 			log.Error().Msgf("Error with labeling daemonset %v with error: %v", ds, err)
 		}
