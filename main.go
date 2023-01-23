@@ -12,9 +12,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/alecthomas/kingpin"
+	"github.com/estafette/estafette-extension-gke/api"
 	foundation "github.com/estafette/estafette-foundation"
 	"github.com/rs/zerolog/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/yaml.v2"
 )
 
@@ -35,8 +36,10 @@ var (
 	credentialsPath = kingpin.Flag("credentials-ppath", "Path to file with GKE credentials configured at service level, passed in to this trusted extension.").Default("/credentials/kubernetes_engine.json").String()
 
 	// optional flags
-	releaseName   = kingpin.Flag("release-name", "Name of the release section, which is used by convention to resolve the credentials.").Envar("ESTAFETTE_RELEASE_NAME").String()
-	releaseAction = kingpin.Flag("release-action", "Name of the release action, to control the type of release.").Envar("ESTAFETTE_RELEASE_ACTION").String()
+	releaseName      = kingpin.Flag("release-name", "Name of the release section, which is used by convention to resolve the credentials.").Envar("ESTAFETTE_RELEASE_NAME").String()
+	releaseAction    = kingpin.Flag("release-action", "Name of the release action, to control the type of release.").Envar("ESTAFETTE_RELEASE_ACTION").String()
+	builderImageSHA  = kingpin.Flag("builder-image-sha", "The SHA of the image that is running the stage").Envar("ESTAFETTE_STAGE_IMAGE_SHA").String()
+	builderImageDate = kingpin.Flag("builder-image-date", "The creation date of the image that is running the stage").Envar("ESTAFETTE_STAGE_IMAGE_CREATED_DATE").String()
 )
 
 func main() {
@@ -148,6 +151,16 @@ func main() {
 	}
 	foundation.RunCommandWithArgs(ctx, "gcloud", clustersGetCredentialsArsgs)
 
+	if *builderImageSHA != "" {
+		// grab only first 20 char of hash since it is not necessary to go beyond that
+		*builderImageSHA = api.SanitizeLabel(*builderImageSHA)[0:19]
+	}
+	if *builderImageDate != "" {
+		builderImageDateTrimmed, err := api.GetTrimmedDate(*builderImageDate)
+		if err == nil {
+			*builderImageDate = api.SanitizeLabel(builderImageDateTrimmed)
+		}
+	}
 	// create 'rendered' directory
 	renderedDir, err := ioutil.TempDir("", "rendered-*")
 	if err != nil {
@@ -291,16 +304,37 @@ func main() {
 	for _, deploy := range params.Deployments {
 		log.Info().Msgf("Waiting for deployment '%v' to finish...", deploy)
 		err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"rollout", "status", "deployment", deploy, "-n", params.Namespace})
+		if err != nil {
+			log.Error().Msgf("Error with rolling out deployment %v with error: %v", deploy, err)
+		}
+		err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"label", "deployment", deploy, "-n", params.Namespace, "--overwrite", fmt.Sprintf("estafette.io/builder-image-sha=%v,estafette.io/builder-image-date=%v", *builderImageSHA, *builderImageSHA)})
+		if err != nil {
+			log.Error().Msgf("Error with labeling deployment %v with error: %v", deploy, err)
+		}
 	}
 
 	for _, sts := range params.Statefulsets {
 		log.Info().Msgf("Waiting for statefulset '%v' to finish...", sts)
 		err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"rollout", "status", "statefulset", sts, "-n", params.Namespace})
+		if err != nil {
+			log.Error().Msgf("Error with rolling out statefulset %v with error: %v", sts, err)
+		}
+		err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"label", "statefulset", sts, "-n", params.Namespace, "--overwrite", fmt.Sprintf("estafette.io/builder-image-sha=%v,estafette.io/builder-image-date=%v", *builderImageSHA, *builderImageSHA)})
+		if err != nil {
+			log.Error().Msgf("Error with labeling statefulset %v with error: %v", sts, err)
+		}
 	}
 
 	for _, ds := range params.Daemonsets {
 		log.Info().Msgf("Waiting for daemonsets '%v' to finish...", ds)
 		err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"rollout", "status", "daemonsets", ds, "-n", params.Namespace})
+		if err != nil {
+			log.Error().Msgf("Error with rooling out daemonset %v with error: %v", ds, err)
+		}
+		err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"label", "daemonset", ds, "-n", params.Namespace, "--overwrite", fmt.Sprintf("estafette.io/builder-image-sha=%v,estafette.io/builder-image-date=%v", *builderImageSHA, *builderImageSHA)})
+		if err != nil {
+			log.Error().Msgf("Error with labeling daemonset %v with error: %v", ds, err)
+		}
 	}
 
 	if params.JobTimeoutSeconds > 0 {
