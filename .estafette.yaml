@@ -41,6 +41,8 @@ stages:
           && chmod +x /google-cloud-sdk/bin/kubectl \
           && kubectl version --client
 
+      RUN gcloud components install gke-gcloud-auth-plugin
+
       COPY ${ESTAFETTE_GIT_NAME} /
 
       ENV ESTAFETTE_LOG_FORMAT="console"
