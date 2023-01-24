@@ -299,6 +299,12 @@ func main() {
 		// apply manifest for real
 		log.Info().Msgf("Applying manifest '%v'...", m)
 		foundation.RunCommandWithArgs(ctx, "kubectl", kubectlApplyArgs)
+
+		// add labels to the resources of the file
+		err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"label", "-f", filepath.Join(renderedDir, m), "-n", params.Namespace, "--overwrite", fmt.Sprintf("estafette.io/builder-image-sha=%v", *builderImageDate), fmt.Sprintf("estafette.io/builder-image-date=%v", *builderImageSHA)})
+		if err != nil {
+			log.Error().Msgf("Error with labeling resources in file %v with error: %v", filepath.Join(renderedDir, m), err)
+		}
 	}
 
 	for _, deploy := range params.Deployments {
