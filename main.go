@@ -301,7 +301,8 @@ func main() {
 		foundation.RunCommandWithArgs(ctx, "kubectl", kubectlApplyArgs)
 
 		// add labels to the resources of the file
-		err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"label", "-f", filepath.Join(renderedDir, m), "-n", params.Namespace, "--overwrite", fmt.Sprintf("estafette.io/builder-image-sha=%v", *builderImageDate), fmt.Sprintf("estafette.io/builder-image-date=%v", *builderImageSHA)})
+		err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"label", "-f", filepath.Join(renderedDir, m), "-n", params.Namespace, "--overwrite", fmt.Sprintf("estafette.io/builder-image-sha=%v", *builderImageDate), fmt.Sprintf("estafette.io/builder-image-date=%v", *builderImageSHA), "app.kubernetes.io/managed-by=estafette-extension-gke-yaml"})
+
 		if err != nil {
 			log.Error().Msgf("Error with labeling resources in file %v with error: %v", filepath.Join(renderedDir, m), err)
 		}
@@ -313,7 +314,7 @@ func main() {
 		if err != nil {
 			log.Error().Msgf("Error with rolling out deployment %v with error: %v", deploy, err)
 		}
-		err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"label", "deployment", deploy, "-n", params.Namespace, "--overwrite", fmt.Sprintf("estafette.io/builder-image-sha=%v", *builderImageDate), fmt.Sprintf("estafette.io/builder-image-date=%v", *builderImageSHA)})
+		err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"label", "deployment", deploy, "-n", params.Namespace, "--overwrite", fmt.Sprintf("estafette.io/builder-image-sha=%v", *builderImageDate), fmt.Sprintf("estafette.io/builder-image-date=%v", *builderImageSHA), "app.kubernetes.io/managed-by=estafette-extension-gke-yaml"})
 		if err != nil {
 			log.Error().Msgf("Error with labeling deployment %v with error: %v", deploy, err)
 		}
@@ -325,7 +326,7 @@ func main() {
 		if err != nil {
 			log.Error().Msgf("Error with rolling out statefulset %v with error: %v", sts, err)
 		}
-		err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"label", "statefulset", sts, "-n", params.Namespace, "--overwrite", fmt.Sprintf("estafette.io/builder-image-sha=%v", *builderImageDate), fmt.Sprintf("estafette.io/builder-image-date=%v", *builderImageSHA)})
+		err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"label", "statefulset", sts, "-n", params.Namespace, "--overwrite", fmt.Sprintf("estafette.io/builder-image-sha=%v", *builderImageDate), fmt.Sprintf("estafette.io/builder-image-date=%v", *builderImageSHA), "app.kubernetes.io/managed-by=estafette-extension-gke-yaml"})
 		if err != nil {
 			log.Error().Msgf("Error with labeling statefulset %v with error: %v", sts, err)
 		}
@@ -337,7 +338,7 @@ func main() {
 		if err != nil {
 			log.Error().Msgf("Error with rooling out daemonset %v with error: %v", ds, err)
 		}
-		err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"label", "daemonset", ds, "-n", params.Namespace, "--overwrite", fmt.Sprintf("estafette.io/builder-image-sha=%v", *builderImageDate), fmt.Sprintf("estafette.io/builder-image-date=%v", *builderImageSHA)})
+		err = foundation.RunCommandWithArgsExtended(ctx, "kubectl", []string{"label", "daemonset", ds, "-n", params.Namespace, "--overwrite", fmt.Sprintf("estafette.io/builder-image-sha=%v", *builderImageDate), fmt.Sprintf("estafette.io/builder-image-date=%v", *builderImageSHA), "app.kubernetes.io/managed-by=estafette-extension-gke-yaml"})
 		if err != nil {
 			log.Error().Msgf("Error with labeling daemonset %v with error: %v", ds, err)
 		}
