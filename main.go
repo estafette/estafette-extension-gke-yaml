@@ -188,7 +188,7 @@ func main() {
 				return placeholderValue
 			}
 
-			return fmt.Sprintf("${%v}", placeholderName)
+			return fmt.Sprintf("$%v", placeholderName)
 		})
 
 		// create directory in case manifest file is not in root of repo
